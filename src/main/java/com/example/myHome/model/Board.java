@@ -1,14 +1,16 @@
 package com.example.myHome.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Data;
+import lombok.*;
 
 
 @Entity
 @Data
+@NoArgsConstructor
 public class Board {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,4 +28,13 @@ public class Board {
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     @JsonIgnore
     private User user;
+
+    @Builder
+    public Board(Long id, String title, String content, User user) {
+        this.id = id;
+        this.title = title;
+        this.content = content;
+        this.user = user;
+    }
+
 }
