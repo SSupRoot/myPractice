@@ -1,14 +1,19 @@
 package com.example.myHome.controller;
 
+import com.example.myHome.mapper.UserMapper;
 import com.example.myHome.model.Board;
+import com.example.myHome.model.QUser;
 import com.example.myHome.model.User;
 import com.example.myHome.repository.UserRepository;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.querydsl.QuerydslPredicateExecutor;
 import org.thymeleaf.util.StringUtils;
 
 import java.util.List;
+import java.util.function.Predicate;
 
 @RestController
 @RequestMapping("/api")
@@ -18,16 +23,37 @@ class UserApiController {
     @Autowired
     private UserRepository repository;
 
+    @Autowired
+    private UserMapper userMapper;
+
     @GetMapping("/users")
-    List<User> all() {
-        List<User> users = repository.findAll();
-        log.debug("getBoards().size() be    fore @@@@@");
-        users.get(0).getBoards().size();               // 이 시점에 Board 호출 됨
-        log.debug("getBoards().size() : {} ", users.get(0).getBoards().size());
-        log.debug("getBoards().size() after @@@@@");
+    List<User> all(@RequestParam(required = false) String method, @RequestParam(required = false) String text) {
+        List<User> users = null;
+        if("query".equals(method)){
+            users = repository.findByUsernameQuery(text);
+        } else if("nativequery".equals(method)) {
+            users = repository.findByUsernameNativeQuery(text);
+        } else if ("querydsl".equals(method)) {
+            QUser user = QUser.user;
+
+            BooleanExpression b = user.username.contains(text);
+//            if(true){
+//                b = b.and(user.username.eq("HI"));
+//            }
+
+            users = (List<User>) repository.findAll(b);
+
+        } else if("querydslCustom".equals(method)) {
+            users = repository.findByUsernameCustom(text);
+        } else if("queryjdslJdbc".equals(method)) {
+            users = repository.findByUsernameJdbc(text);
+        } else if("mybatis".equals(method)) {
+            users = userMapper.getUsers(text);
+        }else {
+            users = repository.findAll();
+        }
 
         return users;
-//        return repository.findAll();
     }
 
     @PostMapping("/users")

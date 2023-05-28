@@ -12,18 +12,24 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 
 import javax.sql.DataSource;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(
+        prePostEnabled = true,
+        securedEnabled = true,
+        jsr250Enabled = true
+)
 public class WebSecurityConfig {
 
     @Autowired
     private DataSource dataSource;
 
     @Autowired
-        public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
+    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
         final String sqlUserName = "select username,password,enabled from user where username = ?";
         final String sqlAuthorities = "select u.username, r.name " +
                 "from user_role ur inner join user u on ur.user_id = u.id " +
@@ -36,7 +42,7 @@ public class WebSecurityConfig {
                 .passwordEncoder(new BCryptPasswordEncoder());
     }
 
-
+    @Autowired
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
